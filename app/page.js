@@ -483,7 +483,7 @@ export default function App() {
               </div>
 
               {/* 本数 + 曜日 */}
-              <div style={{marginBottom:20,display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:12}}>
+              <div style={{marginBottom:20,display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:12,alignItems:"start"}}>
                 {allPostTypes.map(pt=>{
                   const isExtra = !POST_TYPES.find(p=>p.id===pt.id);
                   const actual=posts.filter(p=>p.typeId===pt.id).length;
@@ -573,20 +573,19 @@ export default function App() {
                   );
                 })}
 
-              </div>
-
-              {/* ＋ 種別追加ボタン */}
-              <div style={{marginBottom:20,marginTop:-4}}>
-                <button type="button" onClick={()=>setShowAddModal(true)} style={{
-                  padding:"8px 16px",borderRadius:10,
-                  border:"2px dashed #D1D5DB",background:"#fff",
-                  color:"#9CA3AF",fontSize:12,fontWeight:600,cursor:"pointer",
-                  display:"inline-flex",alignItems:"center",gap:6,
-                  transition:"all .15s",
-                }}>
-                  <span style={{fontSize:16,lineHeight:1}}>＋</span>
-                  <span>種別を追加</span>
-                </button>
+                {/* ＋ 種別追加ボタン */}
+                <div style={{display:"flex",alignItems:"center",justifyContent:"center"}}>
+                  <button type="button" onClick={()=>setShowAddModal(true)} style={{
+                    padding:"10px 16px",borderRadius:12,
+                    border:"2px dashed #D1D5DB",background:"#fff",
+                    color:"#9CA3AF",fontSize:12,fontWeight:600,cursor:"pointer",
+                    display:"flex",flexDirection:"column",alignItems:"center",gap:4,
+                    transition:"all .15s",minWidth:72,
+                  }}>
+                    <span style={{fontSize:20,lineHeight:1}}>＋</span>
+                    <span>種別を追加</span>
+                  </button>
+                </div>
               </div>
 
               {/* ヒント + 保存 */}
