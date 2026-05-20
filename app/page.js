@@ -577,13 +577,16 @@ export default function App() {
                 <div style={{
                   flex:"0 0 auto",display:"flex",alignItems:"center",justifyContent:"center",
                 }}>
-                  <button onClick={()=>setShowAddModal(true)} style={{
-                    width:44,height:44,borderRadius:12,
+                  <button type="button" onClick={()=>setShowAddModal(true)} style={{
+                    padding:"10px 16px",borderRadius:12,
                     border:"2px dashed #D1D5DB",background:"#fff",
-                    color:"#9CA3AF",fontSize:22,cursor:"pointer",
-                    display:"flex",alignItems:"center",justifyContent:"center",
-                    transition:"all .15s",
-                  }}>＋</button>
+                    color:"#9CA3AF",fontSize:12,fontWeight:600,cursor:"pointer",
+                    display:"flex",flexDirection:"column",alignItems:"center",gap:4,
+                    transition:"all .15s",minWidth:72,
+                  }}>
+                    <span style={{fontSize:20,lineHeight:1}}>＋</span>
+                    <span>種別を追加</span>
+                  </button>
                 </div>
               </div>
 
