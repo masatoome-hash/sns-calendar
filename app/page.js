@@ -211,7 +211,7 @@ export default function App() {
   const hasSetup = Object.values(ws).some(s=>s.size>0);
 
   return (
-    <div style={{minHeight:"100vh",background:"#F5F6F8",fontFamily:"'Hiragino Kaku Gothic ProN','Noto Sans JP',sans-serif"}}>
+    <div style={{minHeight:"100vh",background:"#EAECF0",fontFamily:"'Hiragino Kaku Gothic ProN','Noto Sans JP',sans-serif"}}>
 
       {/* ── トースト ── */}
       {toast&&(
