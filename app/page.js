@@ -483,7 +483,7 @@ export default function App() {
               </div>
 
               {/* 本数 + 曜日 */}
-              <div style={{marginBottom:20,display:"flex",gap:12,flexWrap:"wrap"}}>
+              <div style={{marginBottom:20,display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:12}}>
                 {allPostTypes.map(pt=>{
                   const isExtra = !POST_TYPES.find(p=>p.id===pt.id);
                   const actual=posts.filter(p=>p.typeId===pt.id).length;
@@ -491,7 +491,7 @@ export default function App() {
                   const ok=actual===target;
                   return(
                     <div key={pt.id} style={{
-                      flex:"1 1 180px",minWidth:180,padding:"14px",borderRadius:12,
+                      padding:"14px",borderRadius:12,
                       border:`1px solid ${pt.color}30`,
                       background:pt.lightBg,
                       position:"relative",
@@ -575,7 +575,7 @@ export default function App() {
 
                 {/* ＋ 種別追加ボタン */}
                 <div style={{
-                  flex:"0 0 auto",display:"flex",alignItems:"center",justifyContent:"center",
+                  display:"flex",alignItems:"center",justifyContent:"center",
                 }}>
                   <button type="button" onClick={()=>setShowAddModal(true)} style={{
                     padding:"10px 16px",borderRadius:12,
