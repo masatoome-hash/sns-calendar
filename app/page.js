@@ -49,9 +49,10 @@ const TUT_KEY     = "sns-cal-tut-v3";
 
 const STEPS = [
   { num:"1", title:"クライアント名・プランを選ぶ", desc:"会社名を入力して、プランを選ぶと本数が自動でセットされます。" },
-  { num:"2", title:"投稿する曜日を選ぶ",           desc:"フィード・リールを投稿したい曜日のボタンを押してください。選んだ瞬間にカレンダーへ反映されます。" },
-  { num:"3", title:"カレンダーを確認・調整する",   desc:"祝日は自動で平日に振替されます。バッジをドラッグして好きな日に移動もできます。日付をクリックすると休日に設定できます。" },
-  { num:"4", title:"保存してダウンロード",         desc:"「クライアントを保存」で設定を記憶。次回は名前を選ぶだけ。最後にPNG画像としてダウンロードできます。" },
+  { num:"2", title:"投稿種別をカスタマイズ",       desc:"フィード・リール以外にも「＋」ボタンから種別を自由に追加できます。追加した種別は「×」ボタンで削除できます。" },
+  { num:"3", title:"投稿する曜日を選ぶ",           desc:"各種別カードで投稿したい曜日を選んでください。選んだ瞬間にカレンダーへ反映されます。" },
+  { num:"4", title:"カレンダーを確認・調整する",   desc:"祝日は自動で平日に振替されます。バッジをドラッグして好きな日に移動もできます。日付をクリックすると休日に設定できます。" },
+  { num:"5", title:"保存してダウンロード",         desc:"「保存」で設定を記憶。次回は名前を選ぶだけ。最後にPNG画像としてダウンロードできます。" },
 ];
 
 const getDaysInMonth = (y,m) => new Date(y,m+1,0).getDate();
@@ -275,7 +276,7 @@ export default function App() {
               autoFocus
               value={newTypeName}
               onChange={e=>setNewTypeName(e.target.value)}
-              onKeyDown={e=>e.key==="Enter"&&addExtraType()}
+              onKeyDown={e=>{ if(e.key==="Enter") e.preventDefault(); }}
               placeholder="例: ストーリーズ"
               style={{
                 width:"100%",padding:"10px 12px",borderRadius:9,
@@ -284,12 +285,12 @@ export default function App() {
               }}
             />
             <div style={{display:"flex",gap:8}}>
-              <button onClick={()=>setShowAddModal(false)} style={{
+              <button type="button" onClick={()=>setShowAddModal(false)} style={{
                 flex:1,padding:"10px",borderRadius:9,
                 border:"1px solid #E5E7EB",background:"#fff",
                 color:"#9CA3AF",fontSize:13,cursor:"pointer",
               }}>キャンセル</button>
-              <button onClick={addExtraType} style={{
+              <button type="button" onClick={addExtraType} style={{
                 flex:1,padding:"10px",borderRadius:9,border:"none",
                 background:"#111",color:"#fff",
                 fontSize:13,fontWeight:700,cursor:"pointer",
@@ -592,8 +593,8 @@ export default function App() {
                 padding:"12px 14px",borderRadius:10,background:"#F9FAFB",
                 border:"1px solid #F3F4F6",
               }}>
-                <span style={{fontSize:11,color:"#9CA3AF",lineHeight:1.6}}>
-                  🎌 祝日は自動振替 &nbsp;·&nbsp; バッジをドラッグで移動 &nbsp;·&nbsp; 平日クリックで休日設定
+                <span style={{fontSize:13,color:"#6B7280",lineHeight:1.8,fontWeight:500}}>
+                  🎌 祝日は自動で平日に振替 &nbsp;·&nbsp; バッジをドラッグで移動 &nbsp;·&nbsp; 平日クリックで休日設定
                 </span>
                 {hasSetup&&(
                   <button onClick={savePreset} style={{
