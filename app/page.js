@@ -734,7 +734,7 @@ export default function App() {
                         borderRadius:10,padding:"10px 6px 8px",
                         background:isDrop?"#F0FDF4":isRed?"#FEF2F2":isSat?"#EFF9FF":"#fff",
                         border:isDrop?"2px solid #22c55e":`1px solid ${isRed?"#FECACA":isSat?"#BAE6FD":"#E5E7EB"}`,
-                        height:130,
+                        minHeight:130,
                         display:"flex",flexDirection:"column",alignItems:"flex-start",
                         position:"relative",cursor:isBuiltIn?"default":"pointer",
                         userSelect:"none",
