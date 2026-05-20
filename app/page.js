@@ -574,7 +574,7 @@ export default function App() {
                 })}
 
                 {/* ＋ 種別追加ボタン */}
-                <div style={{display:"flex",alignItems:"center",justifyContent:"center"}}>
+                <div style={{display:"flex",alignItems:"center",justifyContent:"center",alignSelf:"stretch"}}>
                   <button type="button" onClick={()=>setShowAddModal(true)} style={{
                     padding:"10px 16px",borderRadius:12,
                     border:"2px dashed #D1D5DB",background:"#fff",
