@@ -6,6 +6,14 @@ const POST_TYPES = [
   { id: "reel", label: "リール",   color: "#F43F5E", lightBg: "#FFF1F2", icon: "▶" },
 ];
 
+const EXTRA_COLORS = [
+  { color: "#8B5CF6", lightBg: "#F5F3FF", icon: "◆" },
+  { color: "#F59E0B", lightBg: "#FFFBEB", icon: "★" },
+  { color: "#10B981", lightBg: "#ECFDF5", icon: "●" },
+  { color: "#EC4899", lightBg: "#FDF2F8", icon: "♥" },
+  { color: "#6366F1", lightBg: "#EEF2FF", icon: "▲" },
+];
+
 const PLANS = [
   { id: "standard", label: "スタンダード", desc: "フィード12本 / リール4本",  defaults: { feed: 12, reel: 4  } },
   { id: "advance",  label: "アドバンス",   desc: "フィード12本 / リール12本", defaults: { feed: 12, reel: 12 } },
@@ -62,13 +70,13 @@ function findShift(orig, dow, y, m, holidays, used, tid) {
   return{day:total,isShifted:true};
 }
 
-function buildPosts(y, m, ws, counts, holidays) {
+function buildPosts(y, m, ws, counts, holidays, allPostTypes) {
   const total=getDaysInMonth(y,m), used={};
   const mark=(d,t)=>{ if(!used[d])used[d]={}; used[d][t]=true; };
-  const normal=[], nc=Object.fromEntries(POST_TYPES.map(p=>[p.id,0]));
+  const normal=[], nc=Object.fromEntries(allPostTypes.map(p=>[p.id,0]));
   for(let d=1;d<=total;d++){
     const dow=getDow(y,m,d);
-    POST_TYPES.forEach(pt=>{
+    allPostTypes.forEach(pt=>{
       if(!ws[dow].has(pt.id)||nc[pt.id]>=(counts[pt.id]??0)) return;
       if(holidays.has(toKey(y,m,d))||used[d]?.[pt.id]) return;
       normal.push({id:pt.id+d+Math.random(),typeId:pt.id,day:d,isShifted:false});
@@ -79,7 +87,7 @@ function buildPosts(y, m, ws, counts, holidays) {
   for(let d=1;d<=total;d++){
     const dow=getDow(y,m,d);
     if(!holidays.has(toKey(y,m,d))) continue;
-    POST_TYPES.forEach(pt=>{
+    allPostTypes.forEach(pt=>{
       if(!ws[dow].has(pt.id)) return;
       const so=nc[pt.id]+shifted.filter(p=>p.typeId===pt.id).length;
       if(so>=(counts[pt.id]??0)) return;
@@ -109,8 +117,13 @@ export default function App() {
   const [dl,       setDl]       = useState(false);
   const [presets,  setPresets]  = useState([]);
   const [toast,    setToast]    = useState(null);
-  const [tutStep,  setTutStep]  = useState(-1);
+  const [tutStep,      setTutStep]      = useState(-1);
+  const [extraTypes,   setExtraTypes]   = useState([]);
+  const [newTypeName,  setNewTypeName]  = useState("");
+  const [showAddModal, setShowAddModal] = useState(false);
   const calRef = useRef(null);
+
+  const allPostTypes = useMemo(()=>[...POST_TYPES,...extraTypes],[extraTypes]);
 
   useEffect(()=>{
     setPresets(loadPresets());
@@ -120,8 +133,8 @@ export default function App() {
   const allH = useMemo(()=>new Set([...Object.keys(JP_HOLIDAYS),...manualH]),[manualH]);
 
   useEffect(()=>{
-    setPosts(buildPosts(year,month,ws,counts,allH));
-  },[year,month,ws,counts,allH]);
+    setPosts(buildPosts(year,month,ws,counts,allH,allPostTypes));
+  },[year,month,ws,counts,allH,allPostTypes]);
 
   const goMonth = d => {
     let nm=month+d, ny=year;
@@ -155,14 +168,14 @@ export default function App() {
 
   const dayMap = useMemo(()=>{
     const map={};
-    const c=Object.fromEntries(POST_TYPES.map(p=>[p.id,0]));
+    const c=Object.fromEntries(allPostTypes.map(p=>[p.id,0]));
     [...posts].sort((a,b)=>a.day-b.day).forEach(post=>{
       c[post.typeId]++;
       if(!map[post.day]) map[post.day]=[];
       map[post.day].push({post,index:c[post.typeId]});
     });
     return map;
-  },[posts]);
+  },[posts,allPostTypes]);
 
   const cells = useMemo(()=>{
     const a=[];
@@ -208,6 +221,27 @@ export default function App() {
     }finally{ setDl(false); }
   },[company,year,month]);
 
+  const addExtraType = () => {
+    const name = newTypeName.trim();
+    if(!name) return;
+    const idx = extraTypes.length % EXTRA_COLORS.length;
+    const { color, lightBg, icon } = EXTRA_COLORS[idx];
+    const id = "extra_" + Date.now();
+    setExtraTypes(prev=>[...prev, { id, label:name, color, lightBg, icon }]);
+    setCounts(prev=>({...prev, [id]:4}));
+    setNewTypeName("");
+    setShowAddModal(false);
+  };
+
+  const deleteExtraType = id => {
+    setExtraTypes(prev=>prev.filter(t=>t.id!==id));
+    setCounts(prev=>{ const n={...prev}; delete n[id]; return n; });
+    setWs(prev=>Object.fromEntries(Object.entries(prev).map(([dow,s])=>{
+      const ns=new Set(s); ns.delete(id); return [dow,ns];
+    })));
+    setPosts(prev=>prev.filter(p=>p.typeId!==id));
+  };
+
   const hasSetup = Object.values(ws).some(s=>s.size>0);
 
   return (
@@ -223,6 +257,46 @@ export default function App() {
           boxShadow:"0 4px 20px rgba(0,0,0,.15)",
           zIndex:9999,whiteSpace:"nowrap",
         }}>{toast.msg}</div>
+      )}
+
+      {/* ── 種別追加モーダル ── */}
+      {showAddModal&&(
+        <div onClick={()=>setShowAddModal(false)} style={{
+          position:"fixed",inset:0,zIndex:2000,
+          background:"rgba(0,0,0,.4)",
+          display:"flex",alignItems:"center",justifyContent:"center",padding:20,
+        }}>
+          <div onClick={e=>e.stopPropagation()} style={{
+            width:320,background:"#fff",borderRadius:16,padding:"24px 20px",
+            boxShadow:"0 20px 60px rgba(0,0,0,.2)",
+          }}>
+            <div style={{fontSize:15,fontWeight:700,color:"#111",marginBottom:16}}>投稿種別を追加</div>
+            <input
+              autoFocus
+              value={newTypeName}
+              onChange={e=>setNewTypeName(e.target.value)}
+              onKeyDown={e=>e.key==="Enter"&&addExtraType()}
+              placeholder="例: ストーリーズ"
+              style={{
+                width:"100%",padding:"10px 12px",borderRadius:9,
+                border:"1px solid #E5E7EB",fontSize:14,outline:"none",
+                boxSizing:"border-box",marginBottom:16,
+              }}
+            />
+            <div style={{display:"flex",gap:8}}>
+              <button onClick={()=>setShowAddModal(false)} style={{
+                flex:1,padding:"10px",borderRadius:9,
+                border:"1px solid #E5E7EB",background:"#fff",
+                color:"#9CA3AF",fontSize:13,cursor:"pointer",
+              }}>キャンセル</button>
+              <button onClick={addExtraType} style={{
+                flex:1,padding:"10px",borderRadius:9,border:"none",
+                background:"#111",color:"#fff",
+                fontSize:13,fontWeight:700,cursor:"pointer",
+              }}>追加</button>
+            </div>
+          </div>
+        </div>
       )}
 
       {/* ── チュートリアル ── */}
@@ -408,16 +482,18 @@ export default function App() {
               </div>
 
               {/* 本数 + 曜日 */}
-              <div style={{marginBottom:20,display:"flex",gap:12}}>
-                {POST_TYPES.map(pt=>{
+              <div style={{marginBottom:20,display:"flex",gap:12,flexWrap:"wrap"}}>
+                {allPostTypes.map(pt=>{
+                  const isExtra = !POST_TYPES.find(p=>p.id===pt.id);
                   const actual=posts.filter(p=>p.typeId===pt.id).length;
                   const target=counts[pt.id]??0;
                   const ok=actual===target;
                   return(
                     <div key={pt.id} style={{
-                      flex:1,padding:"14px",borderRadius:12,
+                      flex:"1 1 180px",minWidth:180,padding:"14px",borderRadius:12,
                       border:`1px solid ${pt.color}30`,
                       background:pt.lightBg,
+                      position:"relative",
                     }}>
                       {/* カードヘッダー */}
                       <div style={{display:"flex",alignItems:"center",gap:6,marginBottom:12}}>
@@ -431,6 +507,15 @@ export default function App() {
                           marginLeft:"auto",fontSize:11,fontWeight:600,
                           color:ok?"#16a34a":actual<target?"#d97706":"#dc2626",
                         }}>{ok?`✓ ${actual}本`:`${actual}/${target}本`}</span>
+                        {isExtra&&(
+                          <button onClick={()=>deleteExtraType(pt.id)} style={{
+                            marginLeft:4,width:20,height:20,borderRadius:5,
+                            border:"none",background:"rgba(0,0,0,0.08)",
+                            color:"#9CA3AF",fontSize:11,cursor:"pointer",
+                            display:"flex",alignItems:"center",justifyContent:"center",
+                            flexShrink:0,
+                          }}>×</button>
+                        )}
                       </div>
 
                       {/* 本数カウンター */}
@@ -486,6 +571,19 @@ export default function App() {
                     </div>
                   );
                 })}
+
+                {/* ＋ 種別追加ボタン */}
+                <div style={{
+                  flex:"0 0 auto",display:"flex",alignItems:"center",justifyContent:"center",
+                }}>
+                  <button onClick={()=>setShowAddModal(true)} style={{
+                    width:44,height:44,borderRadius:12,
+                    border:"2px dashed #D1D5DB",background:"#fff",
+                    color:"#9CA3AF",fontSize:22,cursor:"pointer",
+                    display:"flex",alignItems:"center",justifyContent:"center",
+                    transition:"all .15s",
+                  }}>＋</button>
+                </div>
               </div>
 
               {/* ヒント + 保存 */}
@@ -576,7 +674,7 @@ export default function App() {
 
               {/* 凡例 */}
               <div style={{display:"flex",gap:8,flexWrap:"wrap",marginBottom:12,alignItems:"center"}}>
-                {POST_TYPES.map(pt=>(
+                {allPostTypes.map(pt=>(
                   <div key={pt.id} style={{
                     display:"flex",alignItems:"center",gap:5,
                     padding:"3px 10px",borderRadius:20,
@@ -659,9 +757,9 @@ export default function App() {
                       )}
 
                       <div style={{display:"flex",flexDirection:"column",gap:3,width:"100%",alignItems:"flex-start"}}>
-                        {[...postsHere].sort((a,b)=>({feed:0,reel:1}[a.post.typeId]??9)-({feed:0,reel:1}[b.post.typeId]??9))
+                        {[...postsHere].sort((a,b)=>allPostTypes.findIndex(p=>p.id===a.post.typeId)-allPostTypes.findIndex(p=>p.id===b.post.typeId))
                           .map(({post,index})=>{
-                            const pt=POST_TYPES.find(p=>p.id===post.typeId);
+                            const pt=allPostTypes.find(p=>p.id===post.typeId);
                             const num=index<=CIRCLE_NUMS.length?CIRCLE_NUMS[index-1]:`(${index})`;
                             const isDrag=dragging===post.id;
                             return(
